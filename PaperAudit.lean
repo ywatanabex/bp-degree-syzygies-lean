@@ -1,0 +1,357 @@
+import BPFixedPoints
+import Lean.Util.CollectAxioms
+
+/-!
+# Axiom audit
+
+Fail the default build if any declaration in the `BPFixedPoints` namespace depends on an
+axiom other than `propext`, `Classical.choice` and `Quot.sound`. The audit walks every
+constant of the environment, including private and auxiliary declarations, definitions and
+instances, so it does not stop at named theorems. In particular `sorryAx`, user axioms and
+native-evaluation axioms are rejected. Run it with `lake build` (it is a default target) or
+`lake build PaperAudit`.
+-/
+
+open Lean Elab Command in
+run_cmd do
+  let env ← getEnv
+  let allowed := #[``propext, ``Classical.choice, ``Quot.sound]
+  let mut bad : Array (Name × Array Name) := #[]
+  let mut declarations : Nat := 0
+  let mut theorems : Nat := 0
+  let mut paper : Nat := 0
+  for (n, ci) in env.constants.toList do
+    let publicName := (privateToUserName? n).getD n
+    if (`BPFixedPoints).isPrefixOf publicName then
+      declarations := declarations + 1
+      if ci.isTheorem then
+        theorems := theorems + 1
+        if (`BPFixedPoints.Paper).isPrefixOf publicName then paper := paper + 1
+      let axs ← collectAxioms n
+      let extra := axs.filter (fun a => !allowed.contains a)
+      if !extra.isEmpty then
+        bad := bad.push (n, extra)
+  if !bad.isEmpty then
+    throwError "unexpected axiom dependencies: {bad}"
+  if declarations == 0 then
+    throwError "audit found no project declarations"
+  logInfo m!"Axiom audit PASS: {declarations} declarations in BPFixedPoints, including {theorems} theorems ({paper} in BPFixedPoints.Paper); only propext, Classical.choice and Quot.sound are used; no sorryAx or additional axioms."
+
+#print axioms BPFixedPoints.Paper.thm_structure_N_eq_Q
+#print axioms BPFixedPoints.Paper.thm_structure_betti
+#print axioms BPFixedPoints.Paper.thm_structure_theta
+#print axioms BPFixedPoints.Paper.thm_structure_omega
+#print axioms BPFixedPoints.Paper.alg_normal_domain
+#print axioms BPFixedPoints.Multigraph.incidenceRing_finite
+#print axioms BPFixedPoints.Multigraph.ringKrullDim_incidenceRing
+#print axioms BPFixedPoints.Multigraph.projectiveDimension_incidenceRing
+#print axioms BPFixedPoints.Multigraph.incResolutionDifferential_internal_degree
+#print axioms BPFixedPoints.Multigraph.incidenceTorEquivState
+#print axioms BPFixedPoints.Multigraph.finrank_incidenceTor
+#print axioms BPFixedPoints.Multigraph.sum_finrank_incidenceTor
+#print axioms BPFixedPoints.Multigraph.incFreeTermToTor_eq_tmul
+#print axioms BPFixedPoints.Multigraph.finrank_incidenceTorInternalPiece
+#print axioms BPFixedPoints.Multigraph.sum_incidenceTorComponent
+#print axioms BPFixedPoints.Multigraph.incidenceTorInternalPiece_sum_unique
+#print axioms BPFixedPoints.CechLine.cup_leibniz
+#print axioms BPFixedPoints.CechLine.cohomologyCup_projection
+#print axioms BPFixedPoints.CechLine.cohomologyCup_assoc
+#print axioms BPFixedPoints.CechLine.cohomologyCup_eq_zero_of_pos
+#print axioms BPFixedPoints.Multigraph.incidenceCoefficientGradedAlgebra
+#print axioms BPFixedPoints.Multigraph.coeffHom_coefficient_degree
+#print axioms BPFixedPoints.Multigraph.incResolutionAugmentation_coefficient_degree
+#print axioms BPFixedPoints.Multigraph.incResolutionAugmentation_graded_surjective
+#print axioms BPFixedPoints.Multigraph.incResolutionAugmentation_graded_exact
+#print axioms BPFixedPoints.Multigraph.incFreeTermDifferential_graded_exact
+#print axioms BPFixedPoints.CechProduct.cyclePairing_closed
+#print axioms BPFixedPoints.CechProduct.finCyclePairing_cup_cons
+#print axioms BPFixedPoints.CechProduct.cohomologyCup_eq_zero_of_overlap
+#print axioms BPFixedPoints.Multigraph.incTransferredPairing_atOrigin
+#print axioms BPFixedPoints.CechProduct.chainCup_leibniz
+#print axioms BPFixedPoints.CechProduct.cohomologyCup_chain_projection
+#print axioms BPFixedPoints.CechProduct.chainCup_projection_eq_zero_of_overlap
+#print axioms BPFixedPoints.Koszul.erase_wedgeSingle
+#print axioms BPFixedPoints.Multigraph.incTotalCup_leibniz
+#print axioms BPFixedPoints.Multigraph.incTotalCup_degree
+#print axioms BPFixedPoints.Multigraph.incResolutionAugmentation_cup
+#print axioms BPFixedPoints.Multigraph.IncResolutionMultiplication.specialized_chainMap_eq
+#print axioms BPFixedPoints.Multigraph.incidenceTorProduct_eq_of_lift
+#print axioms BPFixedPoints.Multigraph.incidenceTorProduct_eq_transferred
+#print axioms BPFixedPoints.Multigraph.incidenceTorProduct_cech_formula
+#print axioms BPFixedPoints.Multigraph.incidenceTorToFull_injective
+#print axioms BPFixedPoints.Paper.alg_tor_product
+#print axioms BPFixedPoints.Multigraph.incFreeTermToTor_surjective
+#print axioms BPFixedPoints.Multigraph.incidenceTorOne_mul
+#print axioms BPFixedPoints.Multigraph.incidenceTor_mul_one
+#print axioms BPFixedPoints.Multigraph.incidenceTorProduct_assoc
+#print axioms BPFixedPoints.Multigraph.incidenceTorProduct_graded_comm
+#print axioms BPFixedPoints.Multigraph.incidenceTorGradedRing
+#print axioms BPFixedPoints.Multigraph.incidenceTorGradedAlgebra
+#print axioms BPFixedPoints.Multigraph.incidenceTorAlgebra_of_mul
+#print axioms BPFixedPoints.Multigraph.incidenceTorAlgebra_graded_comm
+#print axioms BPFixedPoints.Multigraph.incResolutionCup_internal_degree
+#print axioms BPFixedPoints.Multigraph.incFreeTermToTor_boundary
+#print axioms BPFixedPoints.Multigraph.incFreeTermToTor_eq_of_augmentation_eq
+#print axioms BPFixedPoints.Multigraph.incidenceTorOne_internal_degree
+#print axioms BPFixedPoints.Multigraph.incidenceTorProduct_internal_degree
+#print axioms BPFixedPoints.Paper.thm_real_i
+#print axioms BPFixedPoints.Paper.thm_real_ii_sector
+#print axioms BPFixedPoints.Paper.thm_real_ii_lower
+#print axioms BPFixedPoints.Paper.thm_real_ii_strong
+#print axioms BPFixedPoints.Paper.thm_real_ii_min
+#print axioms BPFixedPoints.Paper.intro_generator_real_bridge
+#print axioms BPFixedPoints.Paper.alg_generator_real_bridge
+#print axioms BPFixedPoints.Paper.real_positive_bound
+#print axioms BPFixedPoints.Multigraph.sector_count_odd
+
+#print axioms BPFixedPoints.Paper.alg_sheaf_tensor_monoidal_naturality
+#print axioms BPFixedPoints.Paper.alg_sheaf_tensor_monoidal_sections
+#print axioms BPFixedPoints.Paper.alg_sheaf_tensor_associator_sections
+#print axioms BPFixedPoints.Paper.alg_sheaf_frame_geometric_restriction
+#print axioms BPFixedPoints.Paper.alg_sheaf_restriction_pullback_composition
+#print axioms BPFixedPoints.Paper.alg_sheaf_tensor_geometric_restriction
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_chart_geometric_restriction
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_chart_geometric_factors
+#print axioms BPFixedPoints.Paper.alg_quasicoherent_affine_open_acyclic
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_chart_intersection_acyclic
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cech_acyclic
+#print axioms BPFixedPoints.Paper.alg_sheaf_binary_cover_bound
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_higher_cohomology_vanishing
+#print axioms BPFixedPoints.Paper.alg_sheaf_frame_pullback_restriction
+#print axioms BPFixedPoints.Paper.alg_sheaf_frame_pullback_refinement
+#print axioms BPFixedPoints.Paper.alg_twist_pair_left_chart_restriction
+#print axioms BPFixedPoints.Paper.alg_twist_pair_right_chart_restriction
+#print axioms BPFixedPoints.Paper.alg_vertex_pair_left_projection
+#print axioms BPFixedPoints.Paper.alg_vertex_pair_right_projection
+#print axioms BPFixedPoints.Paper.alg_vertex_pair_left_refined_factor
+#print axioms BPFixedPoints.Paper.alg_vertex_pair_right_refined_factor
+#print axioms BPFixedPoints.Paper.alg_sheaf_local_restriction_linear
+#print axioms BPFixedPoints.Paper.alg_sheaf_local_connecting_linear
+#print axioms BPFixedPoints.Paper.alg_sheaf_mayer_vietoris_linear
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_top_cokernel
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_top_cokernel_original
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_top_cokernel_representative
+#print axioms BPFixedPoints.Paper.alg_sheaf_pullback_ambient_restriction
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_left_pair_restriction
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_right_pair_restriction
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_restricted_chart_transition
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_pair_coefficients
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_left_pair_coefficients
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_right_pair_coefficients
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_coefficient_transition
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_section_cech_difference
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_ext_zero_cech_difference
+#print axioms BPFixedPoints.Paper.alg_vertex_chart_sections_polynomial
+#print axioms BPFixedPoints.Paper.alg_vertex_chart_sections_geometric_coefficients
+#print axioms BPFixedPoints.Paper.alg_vertex_chart_projection_polynomials
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_chart_sections_polynomial
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_chart_sections_original
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_empty_h0
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_empty_higher_vanishing
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_labelled_top_cokernel
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_labelled_top_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_labelled_top_fin
+#print axioms BPFixedPoints.Paper.alg_vertex_face_morphism_restrictions
+#print axioms BPFixedPoints.Paper.alg_vertex_face_chart_morphism
+#print axioms BPFixedPoints.Paper.alg_vertex_face_open
+#print axioms BPFixedPoints.Paper.alg_vertex_face_chart_inverse_image
+#print axioms BPFixedPoints.Paper.alg_vertex_face_sections
+#print axioms BPFixedPoints.Paper.alg_vertex_face_section_restrictions
+#print axioms BPFixedPoints.Paper.alg_vertex_face_inverse_variable
+#print axioms BPFixedPoints.Paper.alg_vertex_face_sections_algebra
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_sections
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_sections_original
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_same_chart_restrictions
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_local_h0
+#print axioms BPFixedPoints.Paper.alg_sheaf_geometric_scalar_coefficients
+#print axioms BPFixedPoints.Paper.alg_twist_laurent_unit_evaluation
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_frame_unit
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_restriction_unit
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_restrictions
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_coefficient_map
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_restriction_identity
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_restriction_composition
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_ext_zero_restrictions
+#print axioms BPFixedPoints.Paper.alg_vertex_face_intersection
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_section_difference
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_ext_zero_difference
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cubical_tensor_boundary
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_face_restriction_monomial
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cubical_coefficient_differential
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cubical_sections_differential
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cubical_chain_comparison
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cubical_chain_face
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cubical_chain_differential
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cubical_chain_degree
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cubical_differential_degree
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cubical_differential_square
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cubical_contraction_differential
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cubical_cycle_decomposition
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cubical_state_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_cubical_boundary_criterion
+#print axioms BPFixedPoints.Paper.alg_mayer_vietoris_open_naturality
+#print axioms BPFixedPoints.Paper.alg_mayer_vietoris_section_kernel
+#print axioms BPFixedPoints.Paper.alg_rectangle_connecting_kernel
+#print axioms BPFixedPoints.Paper.alg_rectangle_section_H2
+#print axioms BPFixedPoints.Paper.alg_rectangle_section_H2_representative
+#print axioms BPFixedPoints.Paper.alg_rectangle_section_H2_linear
+#print axioms BPFixedPoints.Paper.alg_rectangle_section_H2_linear_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_rectangle_vanishing
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_rectangle
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_rectangle_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_rectangle_boundary_coordinates
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_coefficient_H2
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_coefficient_H2_representative
+#print axioms BPFixedPoints.Paper.alg_two_rectangle_orientation_square
+#print axioms BPFixedPoints.Paper.alg_two_rectangle_coefficient_differential
+#print axioms BPFixedPoints.Paper.alg_two_rectangle_state_kernel
+#print axioms BPFixedPoints.Paper.alg_two_rectangle_state_quotient
+#print axioms BPFixedPoints.Paper.alg_two_rectangle_state_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_states
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_states_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_states_inverse
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_free
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_finite
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_finrank
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_minus_two
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_one_factor_vanishing
+#print axioms BPFixedPoints.Paper.alg_two_rectangle_state_piece_kernel
+#print axioms BPFixedPoints.Paper.alg_two_rectangle_state_piece_quotient
+#print axioms BPFixedPoints.Paper.alg_two_rectangle_state_piece_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_piece
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_piece_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_piece_inverse
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_piece_positive
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_free_nonpositive
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_finite_nonpositive
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_finrank_nonpositive
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_zero_factor_vanishing
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_one_factor_vanishing_nonpositive
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_minus_two_laurent_inclusion
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_minus_two_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H2_minus_two_inverse
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_zero_cocycle_difference
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_zero_cocycle_pair_matching
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_global_zero_cycles
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_global_zero_cycles_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_global_H0_states
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_H0_states
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_H0_states_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_H0_states_inverse
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_H0_free
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_H0_finite
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_H0_finrank
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_H0_zero
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_H0_negative_vanishing
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_coefficients
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_coefficient_restrict
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_states
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_projection
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_inverse
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_restrict
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_restrict_pointwise
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_gap
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_basis
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_free
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_vanishing
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_left_single
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H1_right_single
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H0_sections
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H0_projection
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H0_states
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H0_evaluation
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H0_negative_vanishing
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_restriction_kernel
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_state_kernel
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_state_kernel_restrictions
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_first_factor_difference
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_negative_vanishing
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_negative_concentrated
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_negative_one_acyclic
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_minus_one_minus_two_acyclic
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_states
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_states_negative_second
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_states_zero_second
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_projection
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_inverse_negative_second
+#print axioms BPFixedPoints.Paper.alg_vertex_two_row_H0_coefficient_restrict
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_zero_second_coefficients
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_zero_second_connecting
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_zero_second_line
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_zero_second_projection
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_zero_second_gap
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_zero_second_inverse
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_free
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_finite
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_finrank
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_one_vanishing
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_one_acyclic_nonpositive
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_zero_minus_two
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_minus_two_zero
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_H1_minus_two_zero_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_contraction_coefficient
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_projection_rows
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_boundary_kernel
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_cohomology_states
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_cocycle_actual
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_cocycle_rows
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_cocycle_projection
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_comparison
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_comparison_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_comparison_projection
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_comparison_inclusion
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_zero_second_gluing
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_zero_second_connecting
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_zero_second_projection
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_cohomology_all
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_cohomology_all_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_cohomology_all_projection
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_cohomology_all_inclusion
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_middle_cohomology_all_negative_second
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_native_H1
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_native_H1_representative
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_native_H1_projection
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_native_H1_class_projection
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_native_H1_coordinate_sign
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_native_H1_inverse
+#print axioms BPFixedPoints.Paper.alg_vertex_two_twist_native_H1_inclusion_sections
+#print axioms BPFixedPoints.Paper.alg_acyclic_resolution_actual_ext
+#print axioms BPFixedPoints.Paper.alg_acyclic_resolution_actual_ext_representative
+#print axioms BPFixedPoints.Paper.alg_acyclic_resolution_actual_ext_naturality
+#print axioms BPFixedPoints.Paper.alg_acyclic_resolution_geometric_linear
+#print axioms BPFixedPoints.Paper.alg_free_cech_positive_exact
+#print axioms BPFixedPoints.Paper.alg_free_cech_sections
+#print axioms BPFixedPoints.Paper.alg_free_cech_section_differential
+#print axioms BPFixedPoints.Paper.alg_free_cech_augmentation
+#print axioms BPFixedPoints.Paper.alg_free_cech_augmentation_exact
+#print axioms BPFixedPoints.Paper.alg_free_cech_augmentation_epi
+#print axioms BPFixedPoints.Paper.alg_free_cech_term_ext
+#print axioms BPFixedPoints.Paper.alg_free_cech_term_ext_representative
+#print axioms BPFixedPoints.Paper.alg_finite_cech_actual
+#print axioms BPFixedPoints.Paper.alg_finite_cech_actual_representative
+#print axioms BPFixedPoints.Paper.alg_finite_cech_actual_naturality
+#print axioms BPFixedPoints.Paper.alg_finite_cech_geometric_linear
+#print axioms BPFixedPoints.Paper.alg_finite_cech_geometric_comparison
+#print axioms BPFixedPoints.Paper.alg_finite_cech_geometric_scalar
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_tuple_cech_acyclic
+#print axioms BPFixedPoints.Paper.alg_vertex_twist_tuple_cech_actual
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_boundary
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_native_sign
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_boundary_base_independent
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_augmentation_base_independent
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_degrees
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_positive_primitive
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_face_prism
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_face_primitive
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_face_exact
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_face_augmented_exact
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_face_augmentation_section
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_face_augmentation_epi
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_available_face
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_open_primitive
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_presheaf_exact
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_sheaf_complex
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_sheaf_exact
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_presheaf_bound
+#print axioms BPFixedPoints.Paper.alg_cubical_cell_sheaf_bound

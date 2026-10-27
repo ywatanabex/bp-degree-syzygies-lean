@@ -1,0 +1,21 @@
+{
+  "title": "Counting the Fixed Points of Binary Belief Propagation: Generic Degree, Syzygies, and Real Solutions",
+  "authors": [
+    "Yusuke Watanabe"
+  ],
+  "arxiv_id": null,
+  "arxiv_version": null,
+  "arxiv_url": null,
+  "code_release": {
+    "repository": "https://github.com/ywatanabex/bp-degree-syzygies-lean",
+    "note": "Initial public snapshot of 27 October 2026; a tag will be added when the paper is posted. The validation of the released commit is recorded in validation/receipt.json of the clean run and in the research repository."
+  },
+  "manuscript_status": "Draft dated 23 October 2026, not yet submitted or posted.",
+  "manuscript_source": "Research repository ywatanabex/bethe-geometry (private), directory papers/graph-incidence-bp; this Lean project is a snapshot of its subdirectory bp-degree-syzygies-lean without the development history. Theorem statements as of commit 47bd5bd (27 October 2026).",
+  "correspondence_checked_on": "2026-10-27",
+  "entry_point": "BPFixedPoints/Paper.lean (namespace BPFixedPoints.Paper)",
+  "formalized_scope": "Every clause of Theorems 1.1 and 1.2, under the formal hypotheses recorded in MAIN_CLAUSES.md (complete types, hypotheses, axioms and status per clause), and the labels marked Proved in FORMALIZATION.md. Some clauses are proved by arguments that differ from the manuscript's, and some constructions use explicit models; the remaining differences (the functoriality route of the supplement, the saturation lemma 4.2 for smooth varieties, and the external Gröbner basis check for K4) are listed there.",
+  "provenance": {
+    "note": "Proof sources were developed in the private research repository and copied here with their comments edited; no proof terms were changed. Theorem numbers follow the article version of the draft (main.tex, one counter per section)."
+  }
+}

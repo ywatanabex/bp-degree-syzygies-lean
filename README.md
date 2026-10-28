@@ -132,11 +132,10 @@ listed with the reason in [FORMALIZATION.md](FORMALIZATION.md).
 
 ## Paper version
 
-The paper is a draft and has not been posted or submitted yet.
-[MANUSCRIPT.json](MANUSCRIPT.json) records the version the correspondence
-refers to and will be updated with the arXiv identifier and the source
-digest once the paper is posted. The paper source is not required to build
-these proofs.
+The paper is posted as [arXiv:2610.36964](https://arxiv.org/abs/2610.36964)
+(v1, 27 October 2026). [MANUSCRIPT.json](MANUSCRIPT.json) records the version
+the correspondence refers to, and the tag `arxiv-v1` marks the snapshot cited
+by that version. The paper source is not required to build these proofs.
 
 ## Contents
 

@@ -3,14 +3,15 @@
   "authors": [
     "Yusuke Watanabe"
   ],
-  "arxiv_id": null,
-  "arxiv_version": null,
-  "arxiv_url": null,
+  "arxiv_id": "2610.36964",
+  "arxiv_version": "v1",
+  "arxiv_url": "https://arxiv.org/abs/2610.36964",
   "code_release": {
     "repository": "https://github.com/ywatanabex/bp-degree-syzygies-lean",
-    "note": "Initial public snapshot of 27 October 2026; a tag will be added when the paper is posted. The validation of the released commit is recorded in validation/receipt.json of the clean run and in the research repository."
+    "note": "Initial public snapshot of 27 October 2026; a tag will be added when the paper is posted. The validation of the released commit is recorded in validation/receipt.json of the clean run and in the research repository.",
+    "tag": "arxiv-v1 (the initial public snapshot ff70596, cited by arXiv:2610.36964v1)"
   },
-  "manuscript_status": "Draft dated 23 October 2026, not yet submitted or posted.",
+  "manuscript_status": "Posted on arXiv as 2610.36964v1 (submitted 27 October 2026, announced 28 October 2026, primary category math.AC, DOI 10.48550/arXiv.2610.36964). Not yet submitted to a journal.",
   "manuscript_source": "Research repository ywatanabex/bethe-geometry (private), directory papers/graph-incidence-bp; this Lean project is a snapshot of its subdirectory bp-degree-syzygies-lean without the development history. Theorem statements as of commit 47bd5bd (27 October 2026).",
   "correspondence_checked_on": "2026-10-27",
   "entry_point": "BPFixedPoints/Paper.lean (namespace BPFixedPoints.Paper)",
